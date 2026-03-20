@@ -12,11 +12,29 @@ metadata: {"clawdbot":{"emoji":"🦞","requires":{"bins":["bash","curl","python3
 Automated backup and self-healing system for OpenClaw running on Synology NAS.
 適用於 Synology NAS Docker 環境的 OpenClaw 自動備份與崩潰自動還原系統。
 
-## ⚠️ 重要：容器內 AI 無法直接執行備份腳本
+## ⚠️ 容器內 AI 操作備份／還原的方法
 
-備份腳本位於宿主機 `/volume1/homes/crazydb911/`，容器內無法存取此路徑。
-若使用者要求執行備份，請回應：
-> 請在 NAS 主機上執行：`sudo bash /volume1/homes/crazydb911/openclaw-backup.sh`
+備份腳本在宿主機，容器內無法直接執行。請使用**觸發檔機制**：
+
+### 觸發備份
+```bash
+touch /root/.openclaw/trigger-backup
+```
+宿主機 watchdog 每分鐘掃描，偵測到後自動執行完整備份。
+
+### 觸發還原（還原自己這個容器）
+```bash
+echo "原因說明" > /root/.openclaw/trigger-restore
+```
+
+### 確認結果
+```bash
+cat /root/.openclaw/trigger-result
+```
+成功範例：`SUCCESS backup=openclaw-backup-20260320-210000.tar.gz ts=2026-03-20 21:00:05`
+失敗範例：`FAILED reason=no_backup_found`
+
+> 寫完觸發檔後等約 **60-90 秒**，再讀取 trigger-result。
 
 ## Scripts / 腳本清單
 
